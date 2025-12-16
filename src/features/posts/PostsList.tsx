@@ -3,6 +3,7 @@ import { useAppSelector } from '@/app/hooks'
 import { selectAllPosts } from './postsSlice'
 import { PostAuthor } from '../users/PostAuthor'
 import { TimeAgo } from '@/components/TimeAgo'
+import { ReactionButtons } from './ReactionButtons'
 
 export const PostsList = () => {
   // Select the `state.posts` value from the store into the component
@@ -17,6 +18,7 @@ export const PostsList = () => {
       <PostAuthor userId={post.user} />
       <p className="post-content">{post.content.substring(0, 100)}</p>
       <TimeAgo timestamp={post.date} />
+      <ReactionButtons post={post} />
     </article>
   ))
 
