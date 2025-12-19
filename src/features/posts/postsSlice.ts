@@ -26,6 +26,18 @@ export interface Post {
 }
 
 type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
+type NewPost = Pick<Post, 'title' | 'content' | 'user'>
+
+export const addNewPost = createAppAsyncThunk(
+  'posts/addNewPost',
+  // The payload creator receives the partial `{title, content, user}` object
+  async (initialPost: NewPost) => {
+    // We send the initial data to the fake API server
+    const response = await client.post<Post>('/fakeApi/posts', initialPost)
+    // The response includes the complete post object, including unique ID
+    return response.data
+  },
+)
 
 interface PostsState {
   posts: Post[]
@@ -67,27 +79,6 @@ const postsSlice = createSlice({
   name: 'posts',
   initialState,
   reducers: {
-    // Declare a "case reducer" named `postAdded`.
-    // The type of `action.payload` will be a `Post` object.
-    postAdded: {
-      reducer(state, action: PayloadAction<Post>) {
-        // "Mutate" the existing state array, which is
-        // safe to do here beause `createSlice` uses Immer inside.
-        state.posts.push(action.payload)
-      },
-      prepare(title: string, content: string, userId: string) {
-        return {
-          payload: {
-            id: nanoid(),
-            title,
-            content,
-            date: new Date().toISOString(),
-            user: userId,
-            reactions: initialReactions,
-          },
-        }
-      },
-    },
     postUpdated(state, action: PayloadAction<PostUpdate>) {
       const { id, title, content } = action.payload
       const existingPost = state.posts.find((post) => post.id === id)
@@ -123,11 +114,15 @@ const postsSlice = createSlice({
         state.status = 'failed'
         state.error = action.error.message ?? 'Unknown Error'
       })
+      .addCase(addNewPost.fulfilled, (state, action) => {
+        // We can directly add the new post object to our posts array
+        state.posts.push(action.payload)
+      })
   },
 })
 
 // Export the auto-generated action creator with the same name
-export const { postAdded, postUpdated, reactionAdded } = postsSlice.actions
+export const { postUpdated, reactionAdded } = postsSlice.actions
 
 export default postsSlice.reducer
 
