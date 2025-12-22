@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { Spinner } from '@/components/Spinner'
 import { TimeAgo } from '@/components/TimeAgo'
 
+import classnames from 'classnames'
+
 import { useGetPostsQuery, Post } from '@/features/api/apiSlice'
 
 import { PostAuthor } from '../users/PostAuthor'
@@ -31,7 +33,7 @@ function PostExcerpt({ post }: PostExcerptProps) {
 
 export const PostsList = () => {
   // Calling the `useGetPostsQuery()` hook automatically fetches data!
-  const { data: posts = [], isLoading, isSuccess, isError, error } = useGetPostsQuery()
+  const { data: posts = [], isLoading, isFetching, isSuccess, isError, error } = useGetPostsQuery()
 
   const sortedPosts = useMemo(() => {
     const sortedPosts = posts.slice()
@@ -46,7 +48,13 @@ export const PostsList = () => {
   if (isLoading) {
     content = <Spinner text="Loading..." />
   } else if (isSuccess) {
-    content = sortedPosts.map((post) => <PostExcerpt key={post.id} post={post} />)
+    const renderedPosts = sortedPosts.map((post) => <PostExcerpt key={post.id} post={post} />)
+
+    const containerClassnames = classnames('posts-container', {
+      disabled: isFetching,
+    })
+
+    content = <div className={containerClassnames}>{renderedPosts}</div>
   } else if (isError) {
     content = <div>{error.toString()}</div>
   }
